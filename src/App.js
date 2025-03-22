@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './App.css';
+import './App.css'; // Import the updated CSS file
 
 function ArchaeologyDig() {
   // Define the 3x3x3 tensor with the provided structure
@@ -60,24 +60,20 @@ function ArchaeologyDig() {
     setLogs([]); // Clear the log
   };
 
-  // Helper function to get background color based on the layer
-  const getBackgroundColor = (layer) => {
-    switch (layer) {
-      case 1:
-        return "bg-yellow-500 hover:bg-yellow-400";
-      case 2:
-        return "bg-orange-500 hover:bg-orange-400";
-      case 3:
-        return "bg-red-500 hover:bg-red-400";
-      default:
-        return "bg-gray-300";
-    }
-  };
-
   return (
     <div className="flex flex-col items-center p-4">
       <h1 className="text-2xl font-bold mb-4">Archaeology Dig Simulator</h1>
-      <div className="grid grid-cols-3 gap-2 mb-6">
+	  
+	  {/* Reset Button */}
+      <button
+        onClick={handleReset}
+        className="mt-6 px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded"
+      >
+        Reset Dig
+      </button>
+	 
+      {/* Digging Area */}
+      <div className="dig-area">
         {Array(3)
           .fill(null)
           .map((_, row) =>
@@ -86,14 +82,13 @@ function ArchaeologyDig() {
               .map((_, col) => {
                 const currentDepth = revealed[row][col];
                 const isBuried = currentDepth < 3;
+
                 return (
                   <button
-                    key={`${row}-${col}`}
+                    key={`${row}-${col}`} // Generate unique key for each button
                     onClick={() => handleDig(row, col)}
-                    className={`w-16 h-16 border-2 rounded ${
-                      isBuried
-                        ? getBackgroundColor(currentDepth + 1)
-                        : "bg-gray-300"
+                    className={`dig-button ${
+                      isBuried ? `layer-${currentDepth + 1}` : "dug"
                     }`}
                   >
                     {isBuried ? `Layer ${currentDepth + 1}` : "Dug"}
@@ -103,27 +98,21 @@ function ArchaeologyDig() {
           )}
       </div>
 
-      <button
-        onClick={handleReset}
-        className="mb-6 px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded"
-      >
-        Reset Dig
-      </button>
-
-      <div className="w-full max-w-md bg-white border rounded shadow p-4">
+      {/* Log Area */}
+      <div className="log-container my-6">
         <h2 className="text-lg font-semibold mb-2">Digging Log</h2>
-        <div className="h-48 overflow-y-auto border-t pt-2">
+        <div>
           {logs.length === 0 ? (
-            <p className="text-gray-500">No digging activity yet.</p>
+            <p className="no-logs">No digging activity yet.</p>
           ) : (
             logs.map((log, index) => (
-              <p key={index} className="text-sm text-gray-700 mb-1">
-                {log}
-              </p>
+              <p key={index}>{log}</p>
             ))
           )}
         </div>
       </div>
+
+
     </div>
   );
 }
