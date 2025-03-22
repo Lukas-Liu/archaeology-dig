@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import './App.css';
 
 function ArchaeologyDig() {
   // Define the 3x3x3 tensor with the provided structure
