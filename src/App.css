@@ -34,11 +34,10 @@ body {
 
 /* Digging Area */
 .dig-area {
-  width: 300px;
-  height: 300px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns for a 3x3 grid */
+  width: 240px; /* 3 cells at 80px width each */
+  gap: 0; /* No spacing between cells */
   margin-bottom: 20px;
 }
 
@@ -46,16 +45,17 @@ body {
 .dig-button {
   width: 80px;
   height: 80px;
-  border: 2px solid #cccccc;
-  border-radius: 8px;
+  border: 1px solid #cccccc;
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  background-color: #ffffff; /* Default white background */
+  transition: background-color 0.3s ease; /* Smooth color transitions */
 }
 
+/* Remove hover enlarge effect */
 .dig-button:hover {
-  transform: scale(1.05);
+  background-color: #f0f0f0; /* Slight color change on hover */
 }
 
 /* Layer Colors */
@@ -64,7 +64,7 @@ body {
 }
 
 .layer-1:hover {
-  background-color: #7c694f; /* slightly darker tan on hover */
+  background-color: #7c694f; /* Slightly darker tan on hover */
 }
 
 .layer-2 {
@@ -118,10 +118,20 @@ body {
 }
 
 /* Reset Button */
+.reset-container {
+  margin-top: 50px; /* Add extra spacing to separate from the log container */
+}
+
 button {
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
   border: none;
   font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
 }

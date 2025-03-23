@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import './App.css'; // Import the updated CSS file
+import "./App.css"; // Import the updated CSS file
 
 function ArchaeologyDig() {
   // Define the 3x3x3 tensor with the provided structure
@@ -36,21 +36,49 @@ function ArchaeologyDig() {
   // State to store logs for discovered artifacts
   const [logs, setLogs] = useState([]);
 
+  // State to track action points and the day
+  const [actionPoints, setActionPoints] = useState(15); // Total action points (15 points = 5 days × 3 points)
+  const [day, setDay] = useState(1); // Start on day 1
+
   // Handle digging action
   const handleDig = (row, col) => {
-    const currentDepth = revealed[row][col]; // How deep we've dug in this column
-    if (currentDepth < 3) {
-      // Update the revealed state
-      const newRevealed = [...revealed];
-      newRevealed[row][col] = currentDepth + 1;
-      setRevealed(newRevealed);
+    if (actionPoints > 0) {
+      const currentDepth = revealed[row][col]; // How deep we've dug in this column
+      if (currentDepth < 3) {
+        // Update the revealed state
+        const newRevealed = [...revealed];
+        newRevealed[row][col] = currentDepth + 1;
+        setRevealed(newRevealed);
 
-      // Log digging results
-      const isArtifact = initialTensor[currentDepth][row][col] === 1;
-      const newLog = isArtifact
-        ? `Congratulations, you have dug out an artifact at [${row}, ${col}]!`
-        : `You dug at [${row}, ${col}], but found nothing.`;
-      setLogs((prevLogs) => [...prevLogs, newLog]);
+        // Log digging results
+        const isArtifact = initialTensor[currentDepth][row][col] === 1;
+        const newLog = isArtifact
+          ? `Congratulations, you have dug out an artifact at [${row}, ${col}]!`
+          : `You dug at [${row}, ${col}], but found nothing.`;
+        setLogs((prevLogs) => [...prevLogs, newLog]);
+
+        // Deduct action points AFTER a successful digging action
+        const newActionPoints = actionPoints - 1;
+        setActionPoints(newActionPoints);
+
+        // Check if the day has ended (action points modulo 3 == 0)
+        if (newActionPoints > 0 && newActionPoints % 3 === 0) {
+          setDay(day + 1); // Advance to the next day
+          setLogs([]); // Clear the log for the new day
+        }
+      } else {
+        // Log if the cell is already fully dug
+        setLogs((prevLogs) => [
+          ...prevLogs,
+          `This cell at [${row}, ${col}] is already fully dug!`,
+        ]);
+      }
+    } else {
+      // Log if no action points are left
+      setLogs((prevLogs) => [
+        ...prevLogs,
+        "No action points left! Please reset the game to start over.",
+      ]);
     }
   };
 
@@ -58,20 +86,17 @@ function ArchaeologyDig() {
   const handleReset = () => {
     setRevealed(initialRevealedState); // Reset digging progress
     setLogs([]); // Clear the log
+    setActionPoints(15); // Reset action points
+    setDay(1); // Reset the day
   };
+
+  // Calculate remaining action points for the current day
+  const dailyActionPointsLeft = actionPoints % 3 || 3;
 
   return (
     <div className="flex flex-col items-center p-4">
-      <h1 className="text-2xl font-bold mb-4">Archaeology Dig Simulator</h1>
-	  
-	  {/* Reset Button */}
-      <button
-        onClick={handleReset}
-        className="mt-6 px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded"
-      >
-        Reset Dig
-      </button>
-	 
+      <h1 className="text-2xl font-bold mb-4">Virtual Archaeologist's Trench</h1>
+
       {/* Digging Area */}
       <div className="dig-area">
         {Array(3)
@@ -98,12 +123,19 @@ function ArchaeologyDig() {
           )}
       </div>
 
+      {/* Daily Status */}
+      <div className="status-container my-4">
+        <p className="text-lg font-semibold">
+          {`This is Day ${day}, you have ${dailyActionPointsLeft} action points left today. Total ${actionPoints} points.`}
+        </p>
+      </div>
+
       {/* Log Area */}
       <div className="log-container my-6">
         <h2 className="text-lg font-semibold mb-2">Digging Log</h2>
         <div>
           {logs.length === 0 ? (
-            <p className="no-logs">No digging activity yet.</p>
+            <p className="no-logs">No digging activity today yet.</p>
           ) : (
             logs.map((log, index) => (
               <p key={index}>{log}</p>
@@ -112,7 +144,15 @@ function ArchaeologyDig() {
         </div>
       </div>
 
-
+      {/* Reset Button */}
+      <div className="reset-container mt-6">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 bg-red-500 hover:bg-red-400 text-white font-bold rounded"
+        >
+          Reset Dig
+        </button>
+      </div>
     </div>
   );
 }
