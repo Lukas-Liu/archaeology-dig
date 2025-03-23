@@ -117,6 +117,11 @@ body {
   font-style: italic;
 }
 
+.log-container .daily-summary {
+	color: #888888;
+	font-style: italic;
+}
+
 /* Reset Button */
 .reset-container {
   margin-top: 50px; /* Add extra spacing to separate from the log container */
