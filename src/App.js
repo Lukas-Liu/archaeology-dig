@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import "./App.css"; // Import the updated CSS file
 
 function ArchaeologyDig() {
+  // Adjustable game variables
+  const TOTAL_DAYS = 5; // Total number of digging days
+  const TOTAL_ACTION_POINTS = 15; // Total action points for the entire game
+  const ACTION_POINTS_PER_DAY = TOTAL_ACTION_POINTS / TOTAL_DAYS; // Action points available each day
+
   // Define the 3x3x3 tensor with the provided structure
   const initialTensor = [
     [
@@ -38,12 +43,15 @@ function ArchaeologyDig() {
   const [dailySummary, setDailySummary] = useState(""); // Summary of the current day's activity
 
   // State to track action points and the day
-  const [actionPoints, setActionPoints] = useState(15); // Total action points (15 points = 5 days × 3 points)
+  const [actionPoints, setActionPoints] = useState(TOTAL_ACTION_POINTS); // Start with the total pool of action points
+  const [dailyActionPointsLeft, setDailyActionPointsLeft] = useState(
+    ACTION_POINTS_PER_DAY
+  ); // Start with the daily points for the first day
   const [day, setDay] = useState(1); // Start on day 1
 
   // Handle digging action
   const handleDig = (row, col) => {
-    if (actionPoints > 0) {
+    if (dailyActionPointsLeft > 0) {
       const currentDepth = revealed[row][col]; // How deep we've dug in this column
       if (currentDepth < 3) {
         // Update the revealed state
@@ -58,28 +66,9 @@ function ArchaeologyDig() {
           : `You dug hard, but found nothing.`;
         setLogs((prevLogs) => [...prevLogs, newLog]);
 
-        // Deduct action points AFTER a successful digging action
-        const newActionPoints = actionPoints - 1;
-        setActionPoints(newActionPoints);
-
-        // Check if the day has ended (action points modulo 3 == 0)
-        if (newActionPoints > 0 && newActionPoints % 3 === 0) {
-          // Calculate and store the daily summary before clearing logs
-          const artifactsFound = logs.filter((log) =>
-            log.includes("Congratulations")
-          ).length;
-          const totalDigs = logs.length + 1;
-
-          setDailySummary(
-            `Day ${day} Summary: You found ${artifactsFound} artifacts and dug ${totalDigs} cells.`
-          );
-
-          // Advance to the next day
-          setDay(day + 1);
-
-          // Clear the current day's logs
-          setLogs([]);
-        }
+        // Deduct one action point from both daily and total pools
+        setDailyActionPointsLeft((prevPoints) => prevPoints - 1);
+        setActionPoints((prevPoints) => prevPoints - 1);
       } else {
         // Log if the cell is already fully dug
         setLogs((prevLogs) => [
@@ -87,13 +76,35 @@ function ArchaeologyDig() {
           `This cell at [${row}, ${col}] is already fully dug!`,
         ]);
       }
-    } else {
-      // Log if no action points are left
-      setLogs((prevLogs) => [
-        ...prevLogs,
-        "No action points left! Please reset the game to start over.",
-      ]);
     }
+  };
+
+  // Handle "End Today" button click
+  const handleEndToday = () => {
+    // Calculate and store the daily summary
+    const artifactsFound = logs.filter((log) =>
+      log.includes("Congratulations")
+    ).length;
+    const totalDigs = logs.length;
+
+    setDailySummary(
+      `Day ${day} Summary: You found ${artifactsFound} artifacts and dug ${totalDigs} cells.`
+    );
+
+    // Reset logs for the new day
+    setLogs([]);
+
+    // Recalculate total action points for the next day
+    const remainingPoints = (TOTAL_DAYS - day) * ACTION_POINTS_PER_DAY;
+    setActionPoints(remainingPoints > 0 ? remainingPoints : 0);
+
+    // Reset daily action points for the new day
+    if (day < TOTAL_DAYS) {
+      setDailyActionPointsLeft(ACTION_POINTS_PER_DAY);
+	  // Advance to the next day
+	  const nextDay = day + 1;
+      setDay(nextDay);
+	}
   };
 
   // Handle reset action
@@ -101,12 +112,10 @@ function ArchaeologyDig() {
     setRevealed(initialRevealedState); // Reset digging progress
     setLogs([]); // Clear the log
     setDailySummary(""); // Clear the daily summary
-    setActionPoints(15); // Reset action points
+    setActionPoints(TOTAL_ACTION_POINTS); // Reset total action points
+    setDailyActionPointsLeft(ACTION_POINTS_PER_DAY); // Reset daily points
     setDay(1); // Reset the day
   };
-
-  // Calculate remaining action points for the current day
-  const dailyActionPointsLeft = actionPoints % 3 || 3;
 
   return (
     <div className="flex flex-col items-center p-4">
@@ -130,6 +139,7 @@ function ArchaeologyDig() {
                     className={`dig-button ${
                       isBuried ? `layer-${currentDepth + 1}` : "dug"
                     }`}
+                    disabled={dailyActionPointsLeft <= 0} // Disable digging when daily action points are zero
                   >
                     {isBuried ? `Layer ${currentDepth + 1}` : "Dug"}
                   </button>
@@ -141,10 +151,22 @@ function ArchaeologyDig() {
       {/* Daily Status */}
       <div className="status-container my-4">
         <p className="text-lg font-semibold">
-          {`This is Day ${day}, you have ${dailyActionPointsLeft} action points left today. Total ${actionPoints} points.`}
+          {`This is Day ${day}, you have ${Math.max(
+            dailyActionPointsLeft,
+            0
+          )} action points left today. Total action points remaining: ${actionPoints}.`}
         </p>
       </div>
-
+	  {/* End Today Button */}
+	  <div className="end-today-container mt-6">
+		<button
+		  onClick={handleEndToday}
+		  className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded"
+		  disabled={day >= TOTAL_DAYS} // Disable when the final day is reached
+		>
+		  End Today
+		</button>
+		  </div>
       {/* Log Area */}
       <div className="log-container my-6">
         <h2 className="text-lg font-semibold mb-2">Daily Digging Log</h2>
@@ -152,13 +174,15 @@ function ArchaeologyDig() {
           {logs.length === 0 ? (
             <>
               {dailySummary && <p className="daily-summary">{dailySummary}</p>}
-			  <p className="no-logs">No digging activity today yet.</p>
+              <p className="no-logs">No digging activity today yet.</p>
             </>
           ) : (
             logs.map((log, index) => <p key={index}>{log}</p>)
           )}
         </div>
       </div>
+
+      
 
       {/* Reset Button */}
       <div className="reset-container mt-6">

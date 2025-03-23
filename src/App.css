@@ -122,6 +122,11 @@ body {
 	font-style: italic;
 }
 
+/* End Today Button*/
+.end-today-container {
+	margin-bottom: 20px;
+}
+
 /* Reset Button */
 .reset-container {
   margin-top: 50px; /* Add extra spacing to separate from the log container */
