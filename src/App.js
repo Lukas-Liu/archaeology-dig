@@ -76,7 +76,7 @@ function ArchaeologyDig() {
           `This cell at [${row}, ${col}] is already fully dug!`,
         ]);
       }
-    }
+    } 
   };
 
   // Handle "End Today" button click
@@ -147,11 +147,10 @@ function ArchaeologyDig() {
               })
           )}
       </div>
-
       {/* Daily Status */}
       <div className="status-container my-4">
         <p className="text-lg font-semibold">
-          {`This is Day ${day}, you have ${Math.max(
+          {`This is Day ${day}. You have ${Math.max(
             dailyActionPointsLeft,
             0
           )} action points left today. Total action points remaining: ${actionPoints}.`}
@@ -179,6 +178,14 @@ function ArchaeologyDig() {
           ) : (
             logs.map((log, index) => <p key={index}>{log}</p>)
           )}
+		  {/* Conditional message displayed below the logs */}
+		  {dailyActionPointsLeft === 0 && (
+			<p className="mt-4 text-red-600 font-bold">
+			{day === TOTAL_DAYS
+				  ? "The excavation is complete! Time to pack up and reset for a new adventure!"
+				  : "It's getting late! Please end today's dig!"}
+			</p>
+			)}
         </div>
       </div>
 
